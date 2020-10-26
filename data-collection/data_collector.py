@@ -18,9 +18,9 @@ from bleak import BleakClient
 
 class DataCollector:
     def __init__(self):
-        self.accelerometer = None
-        self.magnetometer = None
-        self.gyroscope = None
+        # self.accelerometer = None
+        # self.magnetometer = None
+        # self.gyroscope = None
         self.optical = None
         self.humidity = None
         self.humidty_temperature = None
@@ -30,9 +30,9 @@ class DataCollector:
     def write_to_csv(self):
         row = [
             datetime.datetime.now(),
-            self.accelerometer,
-            self.magnetometer,
-            self.gyroscope,
+            # self.accelerometer,
+            # self.magnetometer,
+            # self.gyroscope,
             self.optical,
             self.humidity,
             self.humidty_temperature,
@@ -45,7 +45,8 @@ class DataCollector:
             writer.writerow(row)
 
     def output(self):
-        print(f'{datetime.datetime.now()}: {self.accelerometer}, {self.magnetometer}, {self.gyroscope}, {self.optical}, {self.humidity}, {self.humidty_temperature}, {self.barometer}, {self.barometer_temperature}')
+        # print(f'{datetime.datetime.now()}: {self.accelerometer}, {self.magnetometer}, {self.gyroscope}, {self.optical}, {self.humidity}, {self.humidty_temperature}, {self.barometer}, {self.barometer_temperature}')
+        print(f'{datetime.datetime.now()}: {self.optical}, {self.humidity}, {self.humidty_temperature}, {self.barometer}, {self.barometer_temperature}')
         self.write_to_csv()
 
 
@@ -259,7 +260,7 @@ async def run(address):
 
         data_collector = DataCollector()
 
-        led_and_buzzer = LEDAndBuzzer()
+        # led_and_buzzer = LEDAndBuzzer()
         #optical
         light_sensor = OpticalSensor(data_collector)
         await light_sensor.start_listener(client)
@@ -270,36 +271,36 @@ async def run(address):
         barometer_sensor = BarometerSensor(data_collector)
         await barometer_sensor.start_listener(client)
         #movement
-        acc_sensor = AccelerometerSensorMovementSensorMPU9250(data_collector)
-        gyro_sensor = GyroscopeSensorMovementSensorMPU9250(data_collector)
-        magneto_sensor = MagnetometerSensorMovementSensorMPU9250(data_collector)
+        # acc_sensor = AccelerometerSensorMovementSensorMPU9250(data_collector)
+        # gyro_sensor = GyroscopeSensorMovementSensorMPU9250(data_collector)
+        # magneto_sensor = MagnetometerSensorMovementSensorMPU9250(data_collector)
 
-        movement_sensor = MovementSensorMPU9250()
-        movement_sensor.register(acc_sensor)
-        movement_sensor.register(gyro_sensor)
-        movement_sensor.register(magneto_sensor)
-        await movement_sensor.start_listener(client)
+        # movement_sensor = MovementSensorMPU9250()
+        # movement_sensor.register(acc_sensor)
+        # movement_sensor.register(gyro_sensor)
+        # movement_sensor.register(magneto_sensor)
+        # await movement_sensor.start_listener(client)
 
         # print(f'{datetime.datetime.now()}: Light = {global_light}, Humidty = {global_humidity}, Pressure = {global_pressure}, Accelerometer = {global_accelerometer}, Gyroscope = {global_gyroscope}, Magnetometer = {global_magnetometer}')
-        cntr = 0
+        # cntr = 0
 
         while True:
             # we don't want to exit the "with" block initiating the client object as the connection is disconnected
             # unless the object is stored
             await asyncio.sleep(1.0)
 
-            if cntr == 0:
-                # shine the red light
-                await led_and_buzzer.notify(client, 0x01)
+            # if cntr == 0:
+            #     # shine the red light
+            #     await led_and_buzzer.notify(client, 0x01)
 
-            if cntr == 5:
-                # shine the green light
-                await led_and_buzzer.notify(client, 0x02)
+            # if cntr == 5:
+            #     # shine the green light
+            #     await led_and_buzzer.notify(client, 0x02)
 
-            cntr += 1
+            # cntr += 1
 
-            if cntr == 10:
-                cntr = 0
+            # if cntr == 10:
+            #     cntr = 0
 
 
 if __name__ == "__main__":
@@ -309,13 +310,13 @@ if __name__ == "__main__":
     """
 
     import os
+    import sys
 
     os.environ["PYTHONASYNCIODEBUG"] = str(1)
-    address = (
-        "54:6c:0e:b5:56:00"
-        if platform.system() != "Darwin"
-        else "C7F84C68-B240-42A5-BBC5-094516247DBE"
-    )
+    if len(sys.argv) == 1:
+        print("Please specify the address")
+        exit()
+    address = sys.argv[1]
     loop = asyncio.get_event_loop()
     loop.run_until_complete(run(address))
     loop.run_forever()
