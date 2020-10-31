@@ -1,0 +1,4 @@
+target 'Gateway' do
+    use_frameworks!
+    pod 'MQTTClient'
+end

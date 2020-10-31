@@ -16,27 +16,38 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" spacing="25" translatesAutoresizingMaskIntoConstraints="NO" id="xQv-VT-Bo6">
-                                <rect key="frame" x="20" y="30" width="335" height="120"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="xQv-VT-Bo6">
+                                <rect key="frame" x="20" y="30" width="335" height="116"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SensorTag" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="x2A-R1-V4L">
-                                        <rect key="frame" x="76.5" y="0.0" width="182.5" height="47.5"/>
+                                        <rect key="frame" x="76.5" y="0.0" width="182.5" height="53"/>
                                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="40"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Connection Status" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2cG-31-CzK">
-                                        <rect key="frame" x="87.5" y="72.5" width="160" height="47.5"/>
-                                        <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="20"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="lYd-fv-59n">
+                                        <rect key="frame" x="66" y="63" width="203.5" height="53"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sensor Connection Status" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2cG-31-CzK">
+                                                <rect key="frame" x="0.0" y="0.0" width="203.5" height="21.5"/>
+                                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="18"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="MQTT Connection Status" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QLV-8b-e2w">
+                                                <rect key="frame" x="0.0" y="31.5" width="203.5" height="21.5"/>
+                                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="18"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                    </stackView>
                                 </subviews>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <rect key="contentStretch" x="0.0" y="1" width="1" height="1"/>
                             </stackView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="40" translatesAutoresizingMaskIntoConstraints="NO" id="il6-7x-waA">
-                                <rect key="frame" x="20" y="200" width="335" height="352"/>
+                                <rect key="frame" x="20" y="186" width="335" height="352"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="15" translatesAutoresizingMaskIntoConstraints="NO" id="Xj9-96-5tp">
                                         <rect key="frame" x="0.0" y="0.0" width="335" height="58"/>
@@ -114,7 +125,7 @@
                         <constraints>
                             <constraint firstItem="il6-7x-waA" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="B7E-Lj-3iR"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="xQv-VT-Bo6" secondAttribute="trailing" constant="20" id="HQe-Jl-rdQ"/>
-                            <constraint firstItem="il6-7x-waA" firstAttribute="top" secondItem="xQv-VT-Bo6" secondAttribute="bottom" constant="50" id="K5S-QC-UAm"/>
+                            <constraint firstItem="il6-7x-waA" firstAttribute="top" secondItem="xQv-VT-Bo6" secondAttribute="bottom" constant="40" id="K5S-QC-UAm"/>
                             <constraint firstItem="xQv-VT-Bo6" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="N0a-At-0oz"/>
                             <constraint firstItem="xQv-VT-Bo6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="PcZ-BG-0Mf"/>
                             <constraint firstItem="xQv-VT-Bo6" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="30" id="T2g-Cw-uka"/>
@@ -123,16 +134,17 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="MQTTStatusLabel" destination="QLV-8b-e2w" id="QAZ-Rg-wjt"/>
                         <outlet property="humidityLabel" destination="1UN-4F-n0Z" id="3uQ-5N-ALl"/>
                         <outlet property="opticalLabel" destination="bND-i3-AVF" id="bGl-At-49e"/>
                         <outlet property="pressureLabel" destination="P6j-6e-1ck" id="imF-pT-mys"/>
-                        <outlet property="statusLabel" destination="2cG-31-CzK" id="sF9-uu-2Gt"/>
+                        <outlet property="sensorStatusLabel" destination="2cG-31-CzK" id="KW2-fo-YdJ"/>
                         <outlet property="temperatureLabel" destination="g8L-Aa-WWi" id="Ndp-tK-lWJ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="137.68115942028987" y="113.83928571428571"/>
+            <point key="canvasLocation" x="136.80000000000001" y="113.79310344827587"/>
         </scene>
     </scenes>
     <resources>
