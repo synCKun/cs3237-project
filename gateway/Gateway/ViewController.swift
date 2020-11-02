@@ -10,6 +10,15 @@ import CoreBluetooth
 import MQTTClient
 
 
+protocol ViewControllerDelegate {
+    func updateValues(humidityTemp: Double!,
+                      humidity: Double!,
+                      pressureTemp: Double!,
+                      pressure: Double!,
+                      light:Double!)
+}
+
+
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate, MQTTSessionManagerDelegate, MQTTSessionDelegate {
    
     
@@ -29,6 +38,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var pressureLabel: UILabel!
     @IBOutlet weak var opticalLabel: UILabel!
     
+    
+    // MARK: Sensor Details
+    var delegate: ViewControllerDelegate?
     
     // MARK: BLE Properties
     var centralManager : CBCentralManager!
@@ -65,7 +77,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
         }
     }
+    
+    
+//    // MARK: SensorDetailsViewController
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        super.prepare(for: segue, sender: sender)
+        self.delegate = segue.destination as? ViewControllerDelegate
 
+    }
+    
+    @IBAction func openSensorDetails(_ sender: Any) {
+        performSegue(withIdentifier: "openSensorDetails", sender: sender)
+    }
     
     // MARK: CBCentralManagerDelegate
     // Check status of BLE hardware
@@ -162,34 +185,37 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     // Get data values when they are updated
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         self.sensorStatusLabel.text = "Sensor Connected"
+
+        if characteristic.uuid == TemperatureDataUUID {
+            print("Temperature Data") // Not implemented
+        } else if characteristic.uuid == HumidityDataUUID {
+            let (temperature, humidity) = SensorTag.getHumidityValue(value: characteristic.value! as NSData)
+            
+            self.humidityTemp = temperature
+            self.humidity = humidity
+            
+            self.humidityTempLabel.text = String(format: "%.4f", self.humidityTemp)
+            self.humidityLabel.text = String(format: "%.4f", self.humidity)
+        } else if characteristic.uuid == BarometerDataUUID {
+            let (temperature, pressure) = SensorTag.getBarometerValue(value: characteristic.value! as NSData)
+            
+            self.pressureTemp = temperature
+            self.pressure = pressure
+            
+            self.pressureTempLabel.text = String(format: "%.4f", self.pressureTemp)
+            self.pressureLabel.text = String(format: "%.4f", self.pressure)
+        } else if characteristic.uuid == OpticalDataUUID {
+            let light = SensorTag.getOpticalValue(value: characteristic.value! as NSData)
+            
+            self.light = light
+            
+            self.opticalLabel.text = String(format: "%.4f", self.light)
+        } else if characteristic.uuid == MovementDataUUID {
+            print("Movement Data") // Not implemented
+        }
         
-            if characteristic.uuid == TemperatureDataUUID {
-                print("Temperature Data") // Not implemented
-            } else if characteristic.uuid == HumidityDataUUID {
-                let (temperature, humidity) = SensorTag.getHumidityValue(value: characteristic.value! as NSData)
-                
-                self.humidityTemp = temperature
-                self.humidity = humidity
-                
-                self.humidityTempLabel.text = String(format: "%.4f", self.humidityTemp)
-                self.humidityLabel.text = String(format: "%.4f", self.humidity)
-            } else if characteristic.uuid == BarometerDataUUID {
-                let (temperature, pressure) = SensorTag.getBarometerValue(value: characteristic.value! as NSData)
-                
-                self.pressureTemp = temperature
-                self.pressure = pressure
-                
-                self.pressureTempLabel.text = String(format: "%.4f", self.pressureTemp)
-                self.pressureLabel.text = String(format: "%.4f", self.pressure)
-            } else if characteristic.uuid == OpticalDataUUID {
-                let light = SensorTag.getOpticalValue(value: characteristic.value! as NSData)
-                
-                self.light = light
-                
-                self.opticalLabel.text = String(format: "%.4f", self.light)
-            } else if characteristic.uuid == MovementDataUUID {
-                print("Movement Data") // Not implemented
-            }
+        
+        self.delegate?.updateValues(humidityTemp: self.humidityTemp, humidity: self.humidity, pressureTemp: self.pressureTemp, pressure: self.pressure, light: self.light)
         
         sendSensorData()
     }
