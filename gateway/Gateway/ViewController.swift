@@ -10,6 +10,12 @@ import CoreBluetooth
 import MQTTClient
 
 
+enum RainState {
+    case raining
+    case notRaining
+}
+
+
 protocol ViewControllerDelegate {
     func updateValues(humidityTemp: Double!,
                       humidity: Double!,
@@ -29,18 +35,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var pressure: Double! = 0.0
     var light: Double! = 0.0
     
+    var rainState: RainState! = .notRaining
+    var sendLabelled: Int! = 0
+    
+    @IBOutlet weak var centerImage: UIImageView!
     @IBOutlet weak var sensorStatusLabel: UILabel!
     @IBOutlet weak var MQTTStatusLabel: UILabel!
     
-    @IBOutlet weak var humidityTempLabel: UILabel!
-    @IBOutlet weak var humidityLabel: UILabel!
-    @IBOutlet weak var pressureTempLabel: UILabel!
-    @IBOutlet weak var pressureLabel: UILabel!
-    @IBOutlet weak var opticalLabel: UILabel!
+    
+    // MARK: Classification
+    @IBOutlet weak var resultLabel: UILabel!
+    @IBOutlet weak var classificationControl: UISegmentedControl!
     
     
     // MARK: Sensor Details
     var delegate: ViewControllerDelegate?
+    
     
     // MARK: BLE Properties
     var centralManager : CBCentralManager!
@@ -59,6 +69,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Initialize image
+        self.centerImage.image = UIImage(named: "sun")
+        
         // Initialize central manager on load
         self.centralManager = CBCentralManager(delegate: self, queue: nil)
         
@@ -68,27 +81,44 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.transport.port = MQTT_PORT
         session?.transport = transport
 
-        session?.connect() { error in
-            print("connection completed with status \(String(describing: error))")
-            if error != nil {
-                self.updateUI(for: self.session?.status ?? .created)
-            } else {
-                self.updateUI(for: self.session?.status ?? .error)
-            }
-        }
+        session?.connect()
     }
     
     
-//    // MARK: SensorDetailsViewController
+    // MARK: SensorDetailsViewController
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         super.prepare(for: segue, sender: sender)
         self.delegate = segue.destination as? ViewControllerDelegate
 
     }
     
+    
     @IBAction func openSensorDetails(_ sender: Any) {
         performSegue(withIdentifier: "openSensorDetails", sender: sender)
     }
+    
+    
+    @IBAction func classificationControl(_ sender: UISegmentedControl) {
+        switch classificationControl.selectedSegmentIndex {
+            case 0:
+                if rainState == .raining {
+                    sendLabelled = 1000
+                }
+                rainState = .notRaining;
+                resultLabel.text = "Not Raining";
+                self.centerImage.image = UIImage(named: "sun")
+            case 1:
+                if rainState == .notRaining {
+                    sendLabelled = 1000
+                }
+                rainState = .raining;
+                resultLabel.text = "Raining";
+                centerImage.image = UIImage(named: "rain")
+            default:
+                break;
+        }
+    }
+    
     
     // MARK: CBCentralManagerDelegate
     // Check status of BLE hardware
@@ -132,7 +162,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     // If disconnected, start searching again
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        self.sensorStatusLabel.text = "Disconnected"
+        self.sensorStatusLabel.text = "MQTT Disconnected"
         central.scanForPeripherals(withServices: nil, options: nil)
     }
     
@@ -193,25 +223,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             
             self.humidityTemp = temperature
             self.humidity = humidity
-            
-            self.humidityTempLabel.text = String(format: "%.4f", self.humidityTemp)
-            self.humidityLabel.text = String(format: "%.4f", self.humidity)
         } else if characteristic.uuid == BarometerDataUUID {
             let (temperature, pressure) = SensorTag.getBarometerValue(value: characteristic.value! as NSData)
             
             self.pressureTemp = temperature
             self.pressure = pressure
-            
-            self.pressureTempLabel.text = String(format: "%.4f", self.pressureTemp)
-            self.pressureLabel.text = String(format: "%.4f", self.pressure)
         } else if characteristic.uuid == OpticalDataUUID {
             let light = SensorTag.getOpticalValue(value: characteristic.value! as NSData)
             
             self.light = light
-            
-            self.opticalLabel.text = String(format: "%.4f", self.light)
         } else if characteristic.uuid == MovementDataUUID {
-            print("Movement Data") // Not implemented
+//            print("Movement Data") // Not implemented
         }
         
         
@@ -236,21 +258,59 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
  
+    
     // Publish a message
     private func publishMessage(_ message: String, onTopic: String) {
-        session?.publishData(message.data(using: .utf8, allowLossyConversion: false), onTopic: onTopic, retain: false, qos: .exactlyOnce)
+        session!.publishData(message.data(using: .utf8, allowLossyConversion: false), onTopic: onTopic, retain: false, qos: .exactlyOnce)
     }
     
     
     private func sendSensorData() {
         let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0)"
         publishMessage(message, onTopic: "gateway/sensor_data")
+        
+        if sendLabelled > 0 {
+            let label = (rainState == .raining) ? 1 : 0
+            let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0), Label=\(label)"
+            
+            publishMessage(message, onTopic: "gateway/sensor_data_labelled")
+            sendLabelled -= 1
+        }
     }
     
     
     func messageDelivered(_ session: MQTTSession, msgID msgId: UInt16) {
         DispatchQueue.main.async {
             self.completion?()
+        }
+    }
+    
+    
+    func handleEvent(_ session: MQTTSession!, event eventCode: MQTTSessionEvent, error: Error!) {
+        switch eventCode {
+            case .connected:
+                MQTTStatusLabel.text = "MQTT Connected"
+                session?.subscribe(toTopic: "cloud/result", at: MQTTQosLevel.exactlyOnce)
+            case .connectionClosed:
+                MQTTStatusLabel.text = "MQTT Connection Closed"
+            default:
+                MQTTStatusLabel.text = "MQTT Error"
+        }
+    }
+    
+    
+    func newMessage(_ session: MQTTSession!, data: Data!, onTopic topic: String!, qos: MQTTQosLevel, retained: Bool, mid: UInt32) {
+        let message = String(data: data, encoding: .utf8) ?? "0"
+        if message == "1" {
+            self.rainState = .raining
+            self.classificationControl.selectedSegmentIndex = 1
+            self.resultLabel.text = "Raining"
+            self.centerImage.image = UIImage(named: "rain")
+        } else {
+            self.rainState = .notRaining
+            self.classificationControl.selectedSegmentIndex = 0
+            self.resultLabel.text = "Not Raining"
+            self.centerImage.image = UIImage(named: "sun")
         }
     }
 }
