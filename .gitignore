@@ -1,1 +1,4 @@
 .DS_Store
+
+# data
+data-collection/data_raw.csv

@@ -118,7 +118,7 @@ class SensorTag {
         value.getBytes(&dataArray, length: MemoryLayout<UInt16>.size)
         
         let m = dataArray[0] & 0xFFF
-        let e = dataArray[0] & 0xF000
+        let e = (dataArray[0] & 0xF000) >> 12
         let light = 0.01 * Double(m << e)
         return light
     }
