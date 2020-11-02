@@ -14,16 +14,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
    
     
     // MARK: Properties
-    var temperature: Double! = 0.0
+    var humidityTemp: Double! = 0.0
     var humidity: Double! = 0.0
+    var pressureTemp: Double! = 0.0
     var pressure: Double! = 0.0
     var light: Double! = 0.0
     
     @IBOutlet weak var sensorStatusLabel: UILabel!
     @IBOutlet weak var MQTTStatusLabel: UILabel!
     
-    @IBOutlet weak var temperatureLabel: UILabel!
+    @IBOutlet weak var humidityTempLabel: UILabel!
     @IBOutlet weak var humidityLabel: UILabel!
+    @IBOutlet weak var pressureTempLabel: UILabel!
     @IBOutlet weak var pressureLabel: UILabel!
     @IBOutlet weak var opticalLabel: UILabel!
     
@@ -166,18 +168,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             } else if characteristic.uuid == HumidityDataUUID {
                 let (temperature, humidity) = SensorTag.getHumidityValue(value: characteristic.value! as NSData)
                 
-                self.temperature = temperature
+                self.humidityTemp = temperature
                 self.humidity = humidity
                 
-                self.temperatureLabel.text = String(format: "%.4f", self.temperature)
+                self.humidityTempLabel.text = String(format: "%.4f", self.humidityTemp)
                 self.humidityLabel.text = String(format: "%.4f", self.humidity)
             } else if characteristic.uuid == BarometerDataUUID {
                 let (temperature, pressure) = SensorTag.getBarometerValue(value: characteristic.value! as NSData)
                 
-                self.temperature = temperature
+                self.pressureTemp = temperature
                 self.pressure = pressure
                 
-                self.temperatureLabel.text = String(format: "%.4f", self.temperature)
+                self.pressureTempLabel.text = String(format: "%.4f", self.pressureTemp)
                 self.pressureLabel.text = String(format: "%.4f", self.pressure)
             } else if characteristic.uuid == OpticalDataUUID {
                 let light = SensorTag.getOpticalValue(value: characteristic.value! as NSData)
@@ -215,7 +217,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     private func sendSensorData() {
-        let message = "Sensor: Temperature=\(self.temperature ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0)"
+        let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0)"
         publishMessage(message, onTopic: "gateway/sensor_data")
     }
     
