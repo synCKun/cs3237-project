@@ -12,7 +12,7 @@ model = None
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Successfully connected to broker.")
-        client.subscribe("cloud/clssify")
+        client.subscribe("cloud/classify/#")
     else:
         print("Connection failed with code: %d" % rc)
 
@@ -22,6 +22,7 @@ def classify(data):
     return result
 
 def on_message(client, userdata, msg):
+    clientId = msg.topic[msg.topic.rfind('/') + 1:]
     message = msg.payload.decode()
     params = message.split(',')
     light = float(params[0])
@@ -31,10 +32,9 @@ def on_message(client, userdata, msg):
     pressure_temp = float(params[4])
     data = [light, humidity, humidity_temp, pressure, pressure_temp]
     result = classify(data)[0]
-    print(result)
 
-    print("Sending results: ", result)
-    client.publish("cloud/result", str(result))
+    print("Sending results:", result)
+    client.publish("cloud/result/" + clientId, str(result))
 
 def setup(hostname):
     client = mqtt.Client()
