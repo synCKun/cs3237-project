@@ -293,13 +293,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     private func sendSensorData() {
-        let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0)"
+//        let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0)"
+        let message = "0.0,\(self.light ?? 0.0),\(self.humidity ?? 0.0),\(self.humidityTemp ?? 0.0),\(self.pressure ?? 0.0),\(self.pressureTemp ?? 0.0)"
+        
         publishMessage(message, onTopic: "gateway/sensor_data/" + DEVICE_NAME)
         
         if sendLabelled > 0 {
             let label = (rainState == .raining) ? 1 : 0
-            let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0), Label=\(label)"
-//            let message = "\(NSDate()),\(self.light ?? 0.0),\(self.humidity ?? 0.0),\(self.humidityTemp ?? 0.0),\(self.pressure ?? 0.0),\(self.pressureTemp ?? 0.0),\(label)"
+//            let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0), Label=\(label)"
+            let message = "0.0,\(self.light ?? 0.0),\(self.humidity ?? 0.0),\(self.humidityTemp ?? 0.0),\(self.pressure ?? 0.0),\(self.pressureTemp ?? 0.0),\(label)"
             
             publishMessage(message, onTopic: "gateway/sensor_data_labelled")
             sendLabelled -= 1
@@ -329,16 +331,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func newMessage(_ session: MQTTSession!, data: Data!, onTopic topic: String!, qos: MQTTQosLevel, retained: Bool, mid: UInt32) {
         let message = String(data: data, encoding: .utf8) ?? "0"
-        if message == "1" {
-            self.rainState = .raining
-            self.classificationControl.selectedSegmentIndex = 1
-            self.resultLabel.text = "Raining"
-            self.centerImage.image = UIImage(named: "rain")
-        } else {
-            self.rainState = .notRaining
-            self.classificationControl.selectedSegmentIndex = 0
-            self.resultLabel.text = "Not Raining"
-            self.centerImage.image = UIImage(named: "sun")
+        
+        if sendLabelled == 0 {
+            if message == "1" {
+                self.rainState = .raining
+                self.classificationControl.selectedSegmentIndex = 1
+                self.resultLabel.text = "Raining"
+                self.centerImage.image = UIImage(named: "rain")
+            } else {
+                self.rainState = .notRaining
+                self.classificationControl.selectedSegmentIndex = 0
+                self.resultLabel.text = "Not Raining"
+                self.centerImage.image = UIImage(named: "sun")
+            }
         }
     }
     
