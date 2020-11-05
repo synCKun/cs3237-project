@@ -40,9 +40,14 @@ def on_message(client, userdata, msg):
     elif msg.topic.find("gateway/sensor_data_labelled") != -1:
         message = msg.payload.decode()
         print("Saving data:", message)
-        csvFile = open("data/data_raw.csv", "a+")
-        csvFile.write(message + "\n")
-        csvFile.close()
+        if message.rfind(",0") == len(message) - 2:
+            csvFile = open("data/data_no_rain.csv", "a+")
+            csvFile.write(message + "\n")
+            csvFile.close()
+        elif message.rfind(",1") == len(message) - 2:
+            csvFile = open("data/data_rain.csv", "a+")
+            csvFile.write(message + "\n")
+            csvFile.close()
 
 def setup(hostname):
     client = mqtt.Client()
