@@ -54,7 +54,7 @@ def setup(hostname):
 def main():
     global model
     print("Loading model.")
-    model = pickle.load(open('model/model1.sav', 'rb'))
+    model = pickle.load(open('model/models/model1.sav', 'rb'))
     print("Done.")
     setup("localhost")
     while True:
