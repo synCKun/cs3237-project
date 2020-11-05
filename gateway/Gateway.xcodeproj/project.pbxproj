@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		166704F5254FF02B009873F6 /* SensorDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 166704F4254FF02B009873F6 /* SensorDetailsViewController.swift */; };
+		1679FA03255455E50040B86B /* RainClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1679FA02255455E50040B86B /* RainClassifier.mlmodel */; };
 		1685D6DA254D21D600412963 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1685D6D9254D21D600412963 /* AppDelegate.swift */; };
 		1685D6DC254D21D600412963 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1685D6DB254D21D600412963 /* SceneDelegate.swift */; };
 		1685D6DE254D21D600412963 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1685D6DD254D21D600412963 /* ViewController.swift */; };
@@ -20,6 +21,7 @@
 
 /* Begin PBXFileReference section */
 		166704F4254FF02B009873F6 /* SensorDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorDetailsViewController.swift; sourceTree = "<group>"; };
+		1679FA02255455E50040B86B /* RainClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = RainClassifier.mlmodel; path = "../../../cloud/model/converted-models/RainClassifier.mlmodel"; sourceTree = "<group>"; };
 		1685D6D6254D21D600412963 /* Gateway.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gateway.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1685D6D9254D21D600412963 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1685D6DB254D21D600412963 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -46,6 +48,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		162BE48E255429A500995CD9 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1679FA02255455E50040B86B /* RainClassifier.mlmodel */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		1685D6CD254D21D600412963 = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +77,7 @@
 		1685D6D8254D21D600412963 /* Gateway */ = {
 			isa = PBXGroup;
 			children = (
+				162BE48E255429A500995CD9 /* Models */,
 				1685D6D9254D21D600412963 /* AppDelegate.swift */,
 				1685D6DB254D21D600412963 /* SceneDelegate.swift */,
 				1685D6DD254D21D600412963 /* ViewController.swift */,
@@ -212,6 +223,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1685D6EF254D23CC00412963 /* SensorTag.swift in Sources */,
+				1679FA03255455E50040B86B /* RainClassifier.mlmodel in Sources */,
 				166704F5254FF02B009873F6 /* SensorDetailsViewController.swift in Sources */,
 				1685D6DE254D21D600412963 /* ViewController.swift in Sources */,
 				1685D6DA254D21D600412963 /* AppDelegate.swift in Sources */,

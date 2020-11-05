@@ -8,6 +8,7 @@
 import UIKit
 import CoreBluetooth
 import MQTTClient
+import CoreML
 
 
 enum RainState {
@@ -61,9 +62,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let MQTT_HOST = "172.31.72.185"
     let MQTT_PORT: UInt32 = 1883
     
+    let DEVICE_NAME = UIDevice.current.name
+    
     private var transport = MQTTCFSocketTransport()
     fileprivate var session = MQTTSession()
     fileprivate var completion: (()->())?
+    
+    
+    // MARK: Model
+    var rainClassifier: RainClassifier!
+    let standardScalerMean = [
+        "light": 3.0710061,
+        "humidity": 74.84800758,
+        "humidityTemp": 31.31831006,
+        "pressure": 1008.31411585,
+        "pressureTemp": 31.82347561,
+    ]
+    
+    let standardScalerStd = [
+        "light": 14.96252355,
+        "humidity": 8.23631047,
+        "humidityTemp": 0.70464542,
+        "pressure": 0.0533495,
+        "pressureTemp": 0.56733501
+    ]
     
     
     override func viewDidLoad() {
@@ -74,6 +96,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         // Initialize central manager on load
         self.centralManager = CBCentralManager(delegate: self, queue: nil)
+        
+        // Initialize model
+        self.rainClassifier = RainClassifier()
         
         // Initialize for MQTT
         self.session?.delegate = self
@@ -102,14 +127,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         switch classificationControl.selectedSegmentIndex {
             case 0:
                 if rainState == .raining {
-                    sendLabelled = 1000
+                    sendLabelled = 100
                 }
                 rainState = .notRaining;
                 resultLabel.text = "Not Raining";
                 self.centerImage.image = UIImage(named: "sun")
             case 1:
                 if rainState == .notRaining {
-                    sendLabelled = 1000
+                    sendLabelled = 100
                 }
                 rainState = .raining;
                 resultLabel.text = "Raining";
@@ -212,12 +237,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    
     // Get data values when they are updated
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         self.sensorStatusLabel.text = "Sensor Connected"
 
         if characteristic.uuid == TemperatureDataUUID {
-            print("Temperature Data") // Not implemented
+//            print("Temperature Data") // Not implemented
         } else if characteristic.uuid == HumidityDataUUID {
             let (temperature, humidity) = SensorTag.getHumidityValue(value: characteristic.value! as NSData)
             
@@ -236,10 +262,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
 //            print("Movement Data") // Not implemented
         }
         
-        
         self.delegate?.updateValues(humidityTemp: self.humidityTemp, humidity: self.humidity, pressureTemp: self.pressureTemp, pressure: self.pressure, light: self.light)
         
         sendSensorData()
+        
+        classifyIsRaining()
     }
     
     
@@ -267,11 +294,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     private func sendSensorData() {
         let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0)"
-        publishMessage(message, onTopic: "gateway/sensor_data")
+        publishMessage(message, onTopic: "gateway/sensor_data/" + DEVICE_NAME)
         
         if sendLabelled > 0 {
             let label = (rainState == .raining) ? 1 : 0
             let message = "Sensor: Humidity Temp=\(self.humidityTemp ?? 0.0), Humidity=\(self.humidity ?? 0.0), Pressure Temp=\(self.pressureTemp ?? 0.0), Pressure=\(self.pressure ?? 0.0), Light=\(self.light ?? 0.0), Label=\(label)"
+//            let message = "\(NSDate()),\(self.light ?? 0.0),\(self.humidity ?? 0.0),\(self.humidityTemp ?? 0.0),\(self.pressure ?? 0.0),\(self.pressureTemp ?? 0.0),\(label)"
             
             publishMessage(message, onTopic: "gateway/sensor_data_labelled")
             sendLabelled -= 1
@@ -290,7 +318,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         switch eventCode {
             case .connected:
                 MQTTStatusLabel.text = "MQTT Connected"
-                session?.subscribe(toTopic: "cloud/result", at: MQTTQosLevel.exactlyOnce)
+                session?.subscribe(toTopic: "cloud/result/" + DEVICE_NAME, at: MQTTQosLevel.exactlyOnce)
             case .connectionClosed:
                 MQTTStatusLabel.text = "MQTT Connection Closed"
             default:
@@ -311,6 +339,42 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             self.classificationControl.selectedSegmentIndex = 0
             self.resultLabel.text = "Not Raining"
             self.centerImage.image = UIImage(named: "sun")
+        }
+    }
+    
+    
+    // MARK: Prediction
+    func scale(_ column: String, _ value: Double) -> Double {
+        return (value - standardScalerMean[column]!) / standardScalerStd[column]!
+    }
+    
+    
+    func scaledInput() -> (light: Double, humidity: Double, humidityTemp: Double, pressure: Double, pressureTemp: Double) {
+        return (scale("light", self.light), scale("humidity", self.humidity), scale("humidityTemp", self.humidityTemp), scale("pressure", self.pressure), scale("pressureTemp", self.pressureTemp))
+    }
+
+    
+    func classifyIsRaining() {
+        let (light, humidity, humidityTemp, pressure, pressureTemp) = scaledInput()
+        
+        guard let isRaining =
+            try? rainClassifier.prediction(light: light, humidity: humidity, humidity_temp: humidityTemp, pressure: pressure, pressure_temp: pressureTemp)
+            else {
+                fatalError("Unexpected runtime error.")
+            }
+        
+        if sendLabelled == 0 {
+            if isRaining.rain == 1 {
+                self.rainState = .raining
+                self.classificationControl.selectedSegmentIndex = 1
+                self.resultLabel.text = "Raining"
+                self.centerImage.image = UIImage(named: "rain")
+            } else {
+                self.rainState = .notRaining
+                self.classificationControl.selectedSegmentIndex = 0
+                self.resultLabel.text = "Not Raining"
+                self.centerImage.image = UIImage(named: "sun")
+            }
         }
     }
 }
