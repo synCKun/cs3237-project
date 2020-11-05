@@ -1,11 +1,5 @@
 import paho.mqtt.client as mqtt
 import pickle
-from sklearn import metrics
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import GridSearchCV
-from sklearn.pipeline import Pipeline
 
 model = None
 
