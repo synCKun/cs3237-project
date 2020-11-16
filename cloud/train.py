@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import make_pipeline
@@ -25,16 +26,19 @@ min_size = min(len(df_rain), len(df_no_rain))
 df_full = df_rain.iloc[:min_size].append(df_no_rain.iloc[:min_size])
 
 X_train, X_test, y_train, y_test = split_data(df_full)
-param_test_SVM = {'C':[0.1,10],
+param_test_SVM = {'C':[0.1,1,10],
       'kernel': ('linear', 'poly', 'rbf', 'sigmoid'),
       'decision_function_shape': ('ovr', 'ovo')}
 
-model = make_pipeline(StandardScaler(), 
-    GridSearchCV(SVC(),
+scaler = StandardScaler()
+gridsearch = GridSearchCV(SVC(),
     param_grid=param_test_SVM,
     cv=5,
-    refit=True),
-    verbose=0)
+    refit=True)
+model = make_pipeline(scaler, gridsearch, verbose=0)
+
+# svc = LinearSVC(C=10)
+# model = make_pipeline(scaler, svc, verbose=0)
 
 model.fit(X_train, y_train.values.ravel())
 
@@ -42,3 +46,15 @@ model_filename = 'model/model1.sav'
 pickle.dump(model, open(model_filename, 'wb'))
 
 print("Training complete.")
+
+print("Best params: ")
+print(gridsearch.best_params_)
+
+print("Validating:")
+loaded_model = pickle.load(open(model_filename, 'rb'))
+result = loaded_model.score(X_test, y_test)
+print("Accuracy: " + str(result))
+
+# from microlearn.offloader import Offload
+# offload = Offload(svc, scaler)
+# offload.export_to_arduino('inference.ino')
