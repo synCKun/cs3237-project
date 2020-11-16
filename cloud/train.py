@@ -47,6 +47,10 @@ pickle.dump(model, open(model_filename, 'wb'))
 
 print("Training complete.")
 
+print("Scaler:")
+print(scaler.mean_)
+print(scaler.var_ ** 0.5)
+
 print("Best params: ")
 print(gridsearch.best_params_)
 
