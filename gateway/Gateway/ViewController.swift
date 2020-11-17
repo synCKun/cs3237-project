@@ -56,6 +56,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     // MARK: BLE Properties
     var centralManager : CBCentralManager!
     var sensorTagPeripheral : CBPeripheral!
+    var LEDAndBuzzerCharacteristic: CBCharacteristic!
     
     
     // MARK: MQTT Properties
@@ -72,19 +73,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     // MARK: Model
     var rainClassifier: RainClassifier!
     let standardScalerMean = [
-        "light": 3.0710061,
-        "humidity": 74.84800758,
-        "humidityTemp": 31.31831006,
-        "pressure": 1008.31411585,
-        "pressureTemp": 31.82347561,
+        "light": 12.91503226,
+        "humidity": 73.50229571,
+        "humidityTemp": 32.14630718,
+        "pressure": 1005.45254839,
+        "pressureTemp": 33.14635484
     ]
     
     let standardScalerStd = [
-        "light": 14.96252355,
-        "humidity": 8.23631047,
-        "humidityTemp": 0.70464542,
-        "pressure": 0.0533495,
-        "pressureTemp": 0.56733501
+        "light": 10.66616891,
+        "humidity": 10.52408536,
+        "humidityTemp": 0.38828233,
+        "pressure": 0.02446108,
+        "pressureTemp": 0.34892268
     ]
     
     
@@ -225,6 +226,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if curCharacteristic.uuid == MovementConfigUUID {
                     enableValue = 0x7f
                 } else if curCharacteristic.uuid == LEDAndBuzzerConfigUUID {
+                    LEDAndBuzzerCharacteristic = curCharacteristic
                     enableValue = 0
                 } else {
                     enableValue = 1
@@ -369,17 +371,27 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
         
         if sendLabelled == 0 {
+            var enableValue: Int16
+            
             if isRaining.rain == 1 {
                 self.rainState = .raining
                 self.classificationControl.selectedSegmentIndex = 1
                 self.resultLabel.text = "Raining"
                 self.centerImage.image = UIImage(named: "rain")
+
+                enableValue = 1
             } else {
                 self.rainState = .notRaining
                 self.classificationControl.selectedSegmentIndex = 0
                 self.resultLabel.text = "Not Raining"
                 self.centerImage.image = UIImage(named: "sun")
+                
+
+                enableValue = 0
             }
+            
+            let enablyBytes = NSData(bytes: &enableValue, length: MemoryLayout<UInt8>.size)
+            self.sensorTagPeripheral.writeValue(enablyBytes as Data, for: LEDAndBuzzerCharacteristic, type: CBCharacteristicWriteType.withResponse)
         }
     }
 }

@@ -119,7 +119,7 @@ class SensorTag {
         
         let m = dataArray[0] & 0xFFF
         let e = (dataArray[0] & 0xF000) >> 12
-        let light = 0.01 * Double(m << e)
+        let light: Double = 0.01 * Double(m) * pow(2, Double(e))
         return light
     }
 }
