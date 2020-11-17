@@ -43,7 +43,9 @@ model = make_pipeline(scaler, gridsearch, verbose=0)
 model.fit(X_train, y_train.values.ravel())
 
 model_filename = 'model/model1.sav'
-pickle.dump(model, open(model_filename, 'wb'))
+scaler_filename = 'model/scaler1.sav'
+pickle.dump(model._final_estimator.best_estimator_, open(model_filename, 'wb'))
+pickle.dump(scaler, open(scaler_filename, 'wb'))
 
 print("Training complete.")
 
@@ -56,7 +58,7 @@ print(gridsearch.best_params_)
 
 print("Validating:")
 loaded_model = pickle.load(open(model_filename, 'rb'))
-result = loaded_model.score(X_test, y_test)
+result = loaded_model.score(scaler.transform(X_test), y_test)
 print("Accuracy: " + str(result))
 
 # from microlearn.offloader import Offload

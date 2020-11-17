@@ -2,6 +2,7 @@ import paho.mqtt.client as mqtt
 import pickle
 
 model = None
+scaler = None
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -12,7 +13,8 @@ def on_connect(client, userdata, flags, rc):
 
 def classify(data):
     global model
-    result = model.predict([data])
+    global scaler
+    result = model.predict(scaler.transform([data]))
     return result
 
 def on_message(client, userdata, msg):
@@ -53,8 +55,10 @@ def setup(hostname):
 
 def main():
     global model
+    global scaler
     print("Loading model.")
-    model = pickle.load(open('model/models/model1.sav', 'rb'))
+    model = pickle.load(open('model/model1.sav', 'rb'))
+    scaler = pickle.load(open('model/scaler1.sav', 'rb'))
     print("Done.")
     setup("localhost")
     while True:
