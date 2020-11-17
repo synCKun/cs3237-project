@@ -2,6 +2,7 @@
 
 # data
 cloud/data-collection/data_raw.csv
+cloud/data-collection/*.csv
 
 # lib
 lib/
