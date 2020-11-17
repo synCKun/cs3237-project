@@ -52,10 +52,6 @@ protobuf==3.14.0
 ptyprocess==0.6.0
 pycparser==2.20
 Pygments==2.7.2
-pyobjc-core==6.2.2
-pyobjc-framework-Cocoa==6.2.2
-pyobjc-framework-CoreBluetooth==6.2.2
-pyobjc-framework-libdispatch==6.2.2
 pyparsing==2.4.7
 pyrsistent==0.17.3
 python-dateutil==2.8.1
